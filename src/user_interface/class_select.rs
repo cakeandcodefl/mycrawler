@@ -9,53 +9,48 @@ struct PlayerCharacter;
 #[derive(Component)]
 pub struct ClassSelectButton;
 
-//pub static mut class_selected: bool = false;
-
-//mut query: Query<&mut Transform, With<MyCamera>>
+pub static mut CLASS_SELECTED: bool = false;
 
 pub fn handle_character_selection(
     mut interaction_query: Query<
-        (&Interaction, &Children),
+        (&Interaction, &Children, &Parent),
         (Changed<Interaction>, With<ClassSelectButton>),
     >,
-    mut text_query: Query<&mut Text>,
+    mut text_query: Query<&Text>,
+    mut query_visibility: Query<&mut Visibility>,
 ) {
-
-    /* unsafe {
-        if class_selected {
+    unsafe {
+        if CLASS_SELECTED {
             return;
         }
-    } */
+    }
 
-    let mut selected_character: Character = Character::new(CharacterType::NonCharacter);
-
-    for (interaction, child) in &mut interaction_query {
-        let mut text = text_query.get_mut(child[0]).unwrap();
+    for (interaction, child, parent) in &mut interaction_query {
+        let text = text_query.get_mut(child[0]).unwrap();
+        let mut class_selection_visibility = query_visibility.get_mut(parent.get()).unwrap();
         match *interaction {
             Interaction::Pressed => {
                 match Character::from_str(&text.sections[0].value) {
-                    Ok(created_character) => {
+                    Ok(_created_character) => {
                         println!("you selected {}", text.sections[0].value);
-                        selected_character = created_character
+                        //TODO: do sth with the character
+                        //selected_character = created_character;
+                        //TODO: change the unsafe and remove static to know if a class was selected
+                        unsafe {
+                            CLASS_SELECTED = true;
+                        }
+                        *class_selection_visibility = Visibility::Hidden;
                     }
-                    Err(_e) => println!("no character selected"), //TODO: Proper error handling
+                    Err(_e) => println!("no character selected, Should not happen"), //TODO: Proper error handling
                 }
             }
-            Interaction::Hovered => {
-                
-            }
-            Interaction::None => {
-                
-            }
+            Interaction::Hovered => {}
+            Interaction::None => {}
         }
     }
-    //TODO: change the unsafe and remove static to know if a class was selected
-    /* unsafe {
-        class_selected = true;
-    } */
 }
 
-//TODO: Create multiple buttons for class selections
+//TODO: Make generic buttons for character selection
 pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(NodeBundle {
@@ -87,9 +82,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -115,9 +108,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -143,9 +134,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -171,9 +160,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -199,9 +186,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                         width: Val::Px(150.0),
                         height: Val::Px(65.0),
                         border: UiRect::all(Val::Px(5.0)),
-                        // horizontally center child text
                         justify_content: JustifyContent::Center,
-                        // vertically center child text
                         align_items: AlignItems::Center,
                         ..default()
                     },
@@ -221,6 +206,7 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
         });
 }
 
+//TODO: initialize after class select
 pub fn initialize_player(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,

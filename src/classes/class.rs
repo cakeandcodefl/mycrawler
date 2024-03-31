@@ -25,7 +25,6 @@ impl Character {
             magic_atk: MagicAtk { magic_atk_value: 1 },
         }
     }
-
     //TODO:create a update method to update stats on actions
 }
 
@@ -51,5 +50,4 @@ pub enum CharacterType {
     Rogue,
     Hunter,
     Priest,
-    NonCharacter, //TODO: remove this later on
 }
