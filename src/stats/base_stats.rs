@@ -17,5 +17,5 @@ pub struct PhysAtk {
 
 #[derive(Component)]
 pub struct MagicAtk {
-    pub  magic_atk_value: u32,
+    pub magic_atk_value: u32,
 }
