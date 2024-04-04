@@ -5,9 +5,24 @@ use std::str::FromStr;
 //TODO: look how we handle player character
 #[derive(Component)]
 pub struct PlayerCharacter;
+pub struct PlayerCharacter;
 
 #[derive(Component)]
 pub struct ClassSelectButton;
+
+#[derive(Component)]
+pub struct AbilityButtons;
+
+#[derive(Component)]
+pub struct AbilityButtonList;
+
+#[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CharacterState {
+    #[default]
+    NotSelected,
+    Selected,
+    SelectedAndSpawned,
+}
 
 #[derive(Component)]
 pub struct AbilityButtons;
@@ -44,6 +59,7 @@ pub fn handle_character_selection(
         match *interaction {
             Interaction::Pressed => {
                 match Character::from_str(&text.sections[0].value) {
+                    Ok(created_character) => {
                     Ok(created_character) => {
                         println!("you selected {}", text.sections[0].value);
                         commands
