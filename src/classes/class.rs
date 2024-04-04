@@ -1,3 +1,4 @@
+use crate::abilities::ability::*;
 use crate::stats::base_stats::*;
 use bevy::prelude::*;
 use std::str::FromStr;
@@ -5,6 +6,7 @@ use std::str::FromStr;
 #[derive(Component)]
 pub struct Character {
     pub character_type: CharacterType,
+    pub active_abilities: ActiveAbilities,
     pub level: u32,
     pub health: Health,
     pub defense: Defense,
@@ -16,8 +18,10 @@ pub struct Character {
 impl Character {
     pub fn new(character_type: CharacterType) -> Character {
         //TODO:change this depending on selected class
+        //TODO: adapt abilities to be real abilties
         Character {
             character_type: character_type,
+            active_abilities: ActiveAbilities::new(),
             level: 1,
             health: Health { hp_value: 100 },
             defense: Defense { def_value: 10 },
