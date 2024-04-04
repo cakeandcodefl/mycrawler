@@ -4,10 +4,24 @@ use std::str::FromStr;
 
 //TODO: look how we handle player character
 #[derive(Component)]
-struct PlayerCharacter;
+pub struct PlayerCharacter;
 
 #[derive(Component)]
 pub struct ClassSelectButton;
+
+#[derive(Component)]
+pub struct AbilityButtons;
+
+#[derive(Component)]
+pub struct AbilityButtonList;
+
+#[derive(States, Default, Debug, Clone, PartialEq, Eq, Hash)]
+pub enum CharacterState {
+    #[default]
+    NotSelected,
+    Selected,
+    SelectedAndSpawned,
+}
 
 pub static mut CLASS_SELECTED: bool = false;
 
@@ -18,27 +32,30 @@ pub fn handle_character_selection(
     >,
     mut text_query: Query<&Text>,
     mut query_visibility: Query<&mut Visibility>,
+    mut commands: Commands, //TODO: commands meshes materials give it to initialize player in another way
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    asset_server: Res<AssetServer>,
+    mut state: ResMut<NextState<CharacterState>>,
 ) {
-    unsafe {
-        if CLASS_SELECTED {
-            return;
-        }
-    }
-
     for (interaction, child, parent) in &mut interaction_query {
         let text = text_query.get_mut(child[0]).unwrap();
         let mut class_selection_visibility = query_visibility.get_mut(parent.get()).unwrap();
         match *interaction {
             Interaction::Pressed => {
                 match Character::from_str(&text.sections[0].value) {
-                    Ok(_created_character) => {
+                    Ok(created_character) => {
                         println!("you selected {}", text.sections[0].value);
-                        //TODO: do sth with the character
-                        //selected_character = created_character;
-                        //TODO: change the unsafe and remove static to know if a class was selected
-                        unsafe {
-                            CLASS_SELECTED = true;
-                        }
+                        commands
+                            .spawn(PlayerCharacter)
+                            .insert(PbrBundle {
+                                mesh: meshes.add(Cuboid::new(2f32, 2f32, 2f32)),
+                                material: materials.add(Color::rgb(1f32, 1f32, 5f32)),
+                                transform: Transform::from_xyz(0f32, 1f32, 5f32),
+                                ..default()
+                            })
+                            .insert(created_character);
+                        state.set(CharacterState::Selected);
                         *class_selection_visibility = Visibility::Hidden;
                     }
                     Err(_e) => println!("no character selected, Should not happen"), //TODO: Proper error handling
@@ -204,21 +221,4 @@ pub fn initialize_class_select_buttons(mut commands: Commands, asset_server: Res
                     ));
                 });
         });
-}
-
-//TODO: initialize after class select
-pub fn initialize_player(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
-) {
-    commands
-        .spawn(PlayerCharacter)
-        .insert(PbrBundle {
-            mesh: meshes.add(Cuboid::new(2f32, 2f32, 2f32)),
-            material: materials.add(Color::rgb(1f32, 1f32, 5f32)),
-            transform: Transform::from_xyz(0f32, 1f32, 5f32),
-            ..default()
-        })
-        .insert(Character::new(CharacterType::Warrior));
 }

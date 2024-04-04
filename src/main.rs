@@ -1,9 +1,24 @@
 use bevy::prelude::*;
 use bevy::window::{Window, WindowPlugin, WindowResolution};
+mod abilities;
 mod classes;
 mod stats;
 mod user_interface;
+use crate::classes::class::*;
 use crate::user_interface::class_select::*;
+
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+enum MyAppState {
+    LoadingScreen,
+    MainMenu,
+    InGame,
+}
+
+#[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
+enum PlayerState {
+    #[default]
+    NotInGame,
+}
 
 #[derive(Component)]
 struct Enemy;
@@ -13,6 +28,9 @@ pub struct Scene;
 
 #[derive(Component)]
 pub struct MyCamera;
+
+#[derive(Event)]
+struct CharacterSelectedEvent;
 
 pub const WIDTH: f32 = 1280.0;
 pub const HEIGHT: f32 = 720.0;
@@ -31,10 +49,33 @@ fn main() {
         }))
         .add_systems(Startup, initialize_scene)
         .add_systems(Startup, initialize_camera)
-        .add_systems(Startup, initialize_player)
-        .add_systems(Startup, initialize_class_select_buttons)
+        .init_state::<PlayerState>()
+        .init_state::<CharacterState>()
+        .add_systems(Startup, initialize_class_select_buttons) //TODO:swap this to event too
         .add_systems(Update, handle_character_selection)
+        .add_event::<CharacterSelectedEvent>()
+        .add_systems(
+            Update,
+            (fire_character_selected, on_character_selected)
+                .run_if(in_state(CharacterState::Selected)),
+        )
         .run();
+}
+
+fn fire_character_selected(
+    mut evw_character_selected: EventWriter<CharacterSelectedEvent>,
+    query: Query<&Character, With<PlayerCharacter>>,
+) {
+    for character in query.iter() {
+        println!("sending");
+        evw_character_selected.send(CharacterSelectedEvent);
+    }
+}
+
+fn on_character_selected(mut evr_character_selected: EventReader<CharacterSelectedEvent>) {
+    for ev in evr_character_selected.read() {
+        println!("dude");
+    }
 }
 
 fn initialize_camera(mut commands: Commands) {
@@ -75,18 +116,3 @@ fn initialize_scene(
         ..default()
     });
 }
-
-/* pub fn rotate_camera(mut query: Query<&mut Transform, With<MyCamera>>) {
-
-    println!("rotating cam");
-    for mut transform in &mut query {
-        transform.rotate_y(PI / 4.0)
-    }
-}
-
-pub fn rotate_scene(mut query: Query<&mut Transform, With<Scene>>, timer: Res<Time>) {
-    for mut transform in &mut query {
-        transform.rotate_y(-(PI / 2.0))
-    }
-
-} */
