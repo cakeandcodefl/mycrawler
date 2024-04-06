@@ -3,7 +3,7 @@ use crate::stats::base_stats::*;
 use bevy::prelude::*;
 use std::str::FromStr;
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub struct Character {
     pub character_type: CharacterType,
     pub active_abilities: ActiveAbilities,
@@ -47,7 +47,7 @@ impl FromStr for Character {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Clone)]
 pub enum CharacterType {
     Warrior,
     Mage,
