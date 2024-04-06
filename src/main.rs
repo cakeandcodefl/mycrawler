@@ -4,15 +4,14 @@ mod abilities;
 mod classes;
 mod stats;
 mod user_interface;
-use crate::classes::class::*;
 use crate::user_interface::class_select::*;
 
-#[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
-enum MyAppState {
+/* #[derive(States, Debug, Clone, PartialEq, Eq, Hash)]
+enum GameState {
     LoadingScreen,
     MainMenu,
     InGame,
-}
+} */
 
 #[derive(States, Debug, Clone, PartialEq, Eq, Hash, Default)]
 enum PlayerState {
@@ -28,9 +27,6 @@ pub struct Scene;
 
 #[derive(Component)]
 pub struct MyCamera;
-
-#[derive(Event)]
-struct CharacterSelectedEvent;
 
 pub const WIDTH: f32 = 1280.0;
 pub const HEIGHT: f32 = 720.0;
@@ -50,32 +46,18 @@ fn main() {
         .add_systems(Startup, initialize_scene)
         .add_systems(Startup, initialize_camera)
         .init_state::<PlayerState>()
-        .init_state::<CharacterState>()
+        .init_state::<ClassState>()
         .add_systems(Startup, initialize_class_select_buttons) //TODO:swap this to event too
-        .add_systems(Update, handle_character_selection)
-        .add_event::<CharacterSelectedEvent>()
+        .add_event::<ClassSelectedEvent>()
         .add_systems(
             Update,
-            (fire_character_selected, on_character_selected)
-                .run_if(in_state(CharacterState::Selected)),
+            handle_and_fire_class_selection.run_if(in_state(ClassState::NotSelected)),
+        )
+        .add_systems(
+            Update,
+            on_character_selected.run_if(in_state(ClassState::Selected)),
         )
         .run();
-}
-
-fn fire_character_selected(
-    mut evw_character_selected: EventWriter<CharacterSelectedEvent>,
-    query: Query<&Character, With<PlayerCharacter>>,
-) {
-    for character in query.iter() {
-        println!("sending");
-        evw_character_selected.send(CharacterSelectedEvent);
-    }
-}
-
-fn on_character_selected(mut evr_character_selected: EventReader<CharacterSelectedEvent>) {
-    for ev in evr_character_selected.read() {
-        println!("dude");
-    }
 }
 
 fn initialize_camera(mut commands: Commands) {
